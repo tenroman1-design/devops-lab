@@ -1,0 +1,13 @@
+#cloud-config
+# Выполняется один раз — при первом запуске ВМ. Ставит nginx со страницей «я — <имя сервера>».
+package_update: true
+packages:
+  - nginx
+write_files:
+  - path: /var/www/html/index.html
+    content: |
+      <meta charset="utf-8">
+      <h1>Я — ${name}</h1>
+      <p>Создан модулем vm из занятия 11. Курс DevOps, НИУ ВШЭ.</p>
+runcmd:
+  - systemctl enable --now nginx

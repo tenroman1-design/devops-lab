@@ -1,1 +1,83 @@
-placeholder
+# ---------- Общее для всех серверов: читаем облако ----------
+data "sbercloud_availability_zones" "zones" {}
+
+data "sbercloud_images_image" "ubuntu" {
+  name_regex  = var.image_name_regex
+  visibility  = "public"
+  most_recent = true
+}
+
+data "sbercloud_vpc_subnet" "course" {
+  name = var.subnet_name
+}
+
+locals {
+  zone = data.sbercloud_availability_zones.zones.names[0]
+  tags = {
+    course = "hse-devops"
+    owner  = var.prefix
+    lesson = "11"
+  }
+}
+
+# ---------- Общее для всех серверов: создаём один раз ----------
+resource "sbercloud_networking_secgroup" "web" {
+  name = "${var.prefix}-web-sg"
+}
+
+resource "sbercloud_networking_secgroup_rule" "ssh" {
+  security_group_id = sbercloud_networking_secgroup.web.id
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 22
+  port_range_max    = 22
+  remote_ip_prefix  = var.allowed_ssh_cidr
+}
+
+resource "sbercloud_networking_secgroup_rule" "http" {
+  security_group_id = sbercloud_networking_secgroup.web.id
+  direction         = "ingress"
+  ethertype         = "IPv4"
+  protocol          = "tcp"
+  port_range_min    = 80
+  port_range_max    = 80
+  remote_ip_prefix  = "0.0.0.0/0"
+}
+
+resource "sbercloud_kps_keypair" "key" {
+  name       = "${var.prefix}-l11-key"
+  public_key = file(pathexpand(var.ssh_public_key_path))
+}
+
+# ---------- Сервер через модуль ----------
+# ЧАСТЬ 1. Вызовите модуль vm и создайте ОДИН сервер.
+# Какие входы есть у модуля — смотрите ../modules/vm/variables.tf.
+# Замените три TODO:
+#   source    — путь к папке модуля (относительно этой папки);
+#   subnet_id — ID общей подсети (она уже прочитана data-источником выше);
+#   key_pair  — ИМЯ ключа, созданного ресурсом выше.
+
+module "web" {
+  source = "TODO"
+
+  name               = "${var.prefix}-web-1"
+  image_id           = data.sbercloud_images_image.ubuntu.id
+  flavor             = var.vm_flavor
+  availability_zone  = local.zone
+  subnet_id          = TODO
+  security_group_ids = [sbercloud_networking_secgroup.web.id]
+  key_pair           = TODO
+  disk_size          = data.sbercloud_images_image.ubuntu.min_disk_gb
+  tags               = local.tags
+
+  user_data = templatefile("${path.module}/cloud-init.yaml.tftpl", {
+    name = "${var.prefix}-web-1"
+  })
+}
+
+# ЧАСТЬ 2 — for_each: см. README. Понадобится и блок moved:
+# moved {
+#   from = module.web
+#   to   = module.web["web-1"]
+# }
