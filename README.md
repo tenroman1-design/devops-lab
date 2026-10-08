@@ -18,7 +18,7 @@
   - [Docker на macOS](#docker-и-docker-compose-на-macos)
   - [Образы курса из GHCR](#образы-курса-из-нашего-реестра-ghcr)
   - [Terraform → подготовка к занятию 10](lesson10/README.md#подготовка)
-- [Занятия 8–10: README, практика и домашние задания](#занятия)
+- [Занятия 8–12: README, практика и домашние задания](#занятия)
 - [Если что-то не работает](#если-что-то-не-работает)
 
 ## Структура репозитория
@@ -31,9 +31,14 @@ lesson10/README.md        занятие 10: подготовка, практи�
 lesson10/practice/        ваша рабочая папка Terraform
 lesson10/steps/           шаги 01…05: data sources, firewall, SSH-ключ, ВМ + IP, nginx через cloud-init
 lesson10/terraform/       готовое решение занятия 10 (ответы)
-lesson10/shared/          общая сеть курса (запускает преподаватель)
+lesson10/shared/          общая сеть курса, бакет для state, NAT-шлюз (запускает преподаватель)
 lesson10/ansible/         Ansible: Docker на ВМ и выкатка стека (понадобится позже)
-lesson12/, .github/        заготовки на будущее (в курсе пока не используются) и копирование образов в GHCR
+lesson11/modules/vm/      занятие 11: модуль «ВМ» (используется и в занятии 12)
+lesson11/practice/        занятие 11: рабочая папка — модуль, for_each, state в облаке
+lesson11/solution/        готовое решение занятия 11
+lesson12/practice/        занятие 12: кластер — балансировщик + app-серверы + БД
+lesson12/solution/        готовое решение занятия 12
+extras/cicd/, .github/    заготовки CI/CD на будущее (в курсе пока не используются) и копирование образов в GHCR
 scripts/pull-images.sh    скачать образы курса из GHCR
 ```
 
@@ -285,6 +290,8 @@ bash scripts/pull-images.sh
 | 8 | Docker Compose: сети, тома, масштабирование | [lesson08/README.md](lesson08/README.md) · [шаблон ДЗ](lesson08/HOMEWORK.md) |
 | 9 | Nginx перед бэкендом, конфигурация и секреты | [lesson09/README.md](lesson09/README.md) · [шаблон ДЗ](lesson09/HOMEWORK.md) |
 | 10 | Infrastructure as Code: своя ВМ в cloud.ru через Terraform | [lesson10/README.md](lesson10/README.md) · [шаблон ДЗ](lesson10/HOMEWORK.md) |
+| 11 | Terraform как проект: модули, for_each, state в облаке | [lesson11/README.md](lesson11/README.md) · [шаблон ДЗ](lesson11/HOMEWORK.md) |
+| 12 | Кластер в облаке: балансировщик, приватная сеть, отказоустойчивость | [lesson12/README.md](lesson12/README.md) · [шаблон ДЗ](lesson12/HOMEWORK.md) |
 
 **Как сдавать ДЗ:** в папке каждого занятия лежит шаблон `HOMEWORK.md`. Скопируйте его, назовите `ДЗ-<номер>-<фамилия>.md` (например, `ДЗ-08-ivanov.md`), заполните и отправьте **файлом в чат группы** до начала следующего занятия. Вывод команд — текстом, без скриншотов. Пароли и ключи в ДЗ не вставляйте никогда.
 
@@ -315,4 +322,5 @@ bash scripts/pull-images.sh
 cd lesson10/practice && terraform destroy && terraform state list   # пусто
 cd ../hw            && terraform destroy && terraform state list   # если делали ДЗ
 ```
+То же — в `lesson11/practice`, `lesson11/hw`, `lesson12/practice`, `lesson12/hw`. С занятия 11 state лежит в бакете, поэтому `destroy` можно сделать с любого ноутбука команды.
 Остановить ВМ в консоли недостаточно: за диск и публичный IP облако продолжает брать деньги.
