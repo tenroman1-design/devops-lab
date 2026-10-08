@@ -1,0 +1,27 @@
+#cloud-config
+# Сервер приложения: Docker, код из GitHub, сборка образа бэкенда (Dockerfile из занятия 8) и запуск.
+# --hostname = имя ВМ, поэтому в ответах бэкенда served_by покажет, какой сервер ответил.
+package_update: true
+packages:
+  - docker.io
+  - git
+write_files:
+  - path: /opt/start-app.sh
+    permissions: "0700"
+    content: |
+      #!/bin/bash
+      set -euo pipefail   # без -x: иначе пароль попадёт в лог
+      systemctl enable --now docker
+      # базовый образ python — из нашего реестра, под привычным именем (как scripts/pull-images.sh)
+      docker pull ${registry}/python:3.12-slim
+      docker tag  ${registry}/python:3.12-slim python:3.12-slim
+      git clone --depth 1 ${repo_url} /opt/devops-lab
+      docker build -t backend /opt/devops-lab/app
+      docker run -d --name backend --restart unless-stopped \
+        --hostname ${name} -p 8000:8000 \
+        -e DATABASE_URL='postgresql://app:${db_password}@${db_ip}:5432/appdb' \
+        -e REDIS_URL='redis://${db_ip}:6379/0' \
+        -e APP_VERSION='lesson-12' \
+        backend
+runcmd:
+  - bash /opt/start-app.sh > /var/log/start-app.log 2>&1

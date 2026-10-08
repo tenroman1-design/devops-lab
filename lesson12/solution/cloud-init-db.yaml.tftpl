@@ -1,0 +1,22 @@
+#cloud-config
+# ВМ базы данных: Docker + PostgreSQL + Redis в контейнерах (как в занятиях 8–9).
+# Образы берём из нашего реестра-копии: Docker Hub из России работает нестабильно.
+package_update: true
+packages:
+  - docker.io
+write_files:
+  - path: /opt/start-db.sh
+    permissions: "0700"
+    content: |
+      #!/bin/bash
+      set -euo pipefail   # без -x: иначе пароль попадёт в лог
+      systemctl enable --now docker
+      docker run -d --name db --restart unless-stopped \
+        -p 5432:5432 -v pgdata:/var/lib/postgresql/data \
+        -e POSTGRES_USER=app -e POSTGRES_PASSWORD='${db_password}' -e POSTGRES_DB=appdb \
+        ${registry}/postgres:17-alpine
+      docker run -d --name cache --restart unless-stopped \
+        -p 6379:6379 \
+        ${registry}/redis:7-alpine
+runcmd:
+  - bash /opt/start-db.sh > /var/log/start-db.log 2>&1
