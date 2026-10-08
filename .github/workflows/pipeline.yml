@@ -1,4 +1,4 @@
-# Занятия 11–12: CI/CD-пайплайн учебного сервиса.
+# Заготовка CI/CD (в курсе пока не используется, файлы деплоя — в extras/cicd).
 #   PR в main      -> lint + test
 #   push в main    -> lint + test -> build & push образа в GHCR -> deploy (если включён)
 name: ci-cd
@@ -109,8 +109,8 @@ jobs:
 
       - name: Upload compose file and nginx config
         run: |
-          scp lesson12/docker-compose.prod.yml "$SSH_USER@$SSH_HOST:/opt/app/docker-compose.yml"
-          scp -r lesson12/nginx "$SSH_USER@$SSH_HOST:/opt/app/"
+          scp extras/cicd/docker-compose.prod.yml "$SSH_USER@$SSH_HOST:/opt/app/docker-compose.yml"
+          scp -r extras/cicd/nginx "$SSH_USER@$SSH_HOST:/opt/app/"
 
       - name: Write .env on server from GitHub Secrets
         run: |
