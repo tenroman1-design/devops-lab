@@ -1,0 +1,7 @@
+# cp terraform.tfvars.example terraform.tfvars   (terraform.tfvars в Git не попадает)
+prefix = "ivanov-petrov"     # ← префикс команды: фамилии латиницей через дефис
+
+# app_count = 2              # сколько серверов приложения за балансировщиком (1–4)
+
+# Пароль БД — НЕ здесь, а в переменной окружения:
+#   export TF_VAR_db_password="$(openssl rand -hex 12)"
