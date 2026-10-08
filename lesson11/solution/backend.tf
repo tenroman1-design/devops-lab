@@ -1,0 +1,26 @@
+# Часть 3: state хранится не на ноутбуке, а в бакете OBS (S3-совместимое хранилище cloud.ru).
+#
+# В блоке backend НЕЛЬЗЯ использовать переменные. Поэтому общие настройки — здесь,
+# а свой путь к state каждый передаёт при init:
+#   export AWS_ACCESS_KEY_ID="$SBC_ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$SBC_SECRET_KEY"
+#   terraform init -migrate-state -backend-config="key=<prefix>/lesson11.tfstate"
+#
+# Блокировки state здесь нет: два одновременных apply в один state испортят его.
+# Договаривайтесь в команде, кто запускает apply.
+
+terraform {
+  backend "s3" {
+    bucket = "hse-devops-tfstate" # имя бакета скажет преподаватель
+    region = "ru-moscow-1"
+    endpoints = {
+      s3 = "https://obs.ru-moscow-1.hc.sbercloud.ru"
+    }
+
+    # OBS — не Amazon: отключаем проверки, которые есть только в AWS
+    skip_region_validation      = true
+    skip_credentials_validation = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+    skip_s3_checksum            = true
+  }
+}

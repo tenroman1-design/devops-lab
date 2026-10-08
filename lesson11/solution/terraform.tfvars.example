@@ -1,0 +1,9 @@
+# cp terraform.tfvars.example terraform.tfvars   (terraform.tfvars в Git не попадает)
+prefix = "ivanov"            # ← ваша фамилия латиницей, строчными
+
+# Часть 2: серверы. Добавьте/уберите строку — и посмотрите terraform plan.
+# servers = {
+#   "web-1" = {}
+#   "web-2" = {}
+#   "web-3" = { disk_size = 20 }
+# }
