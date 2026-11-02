@@ -135,14 +135,14 @@ ansible web -m ping
 
 ### Подготовка (10 мин)
 
-- [ ] ВМ поднята заново по занятию 11: `cd lesson11/practice`, `terraform apply` с ключами и `TF_VAR_db_password`. Проверка: `terraform output public_ip` выводит адрес. Ресурсы после занятия 11 удалены, поэтому ВМ создаётся снова.
+- [ ] Инфраструктура поднята Terraform по занятию 11: `cd lesson11/practice`, ключи доступа и `TF_VAR_db_password` в окне терминала, `terraform apply`. Проверка: `terraform output public_ip` выводит адрес. Ресурсы после занятия 11 удалены, поэтому поднимаете их заново.
 - [ ] Ansible установлен: `ansible --version`. Ubuntu (в том числе VM на Windows): `sudo apt install -y ansible`; Mac: `brew install ansible` (см. [установку инструментов](../README.md)).
-- [ ] Скопируйте папку практики:
+- [ ] Соберите inventory из выхода Terraform (IP руками не вписываем):
   ```bash
   cd devops-lab/lesson13/practice
-  cp inventory.ini.example inventory.ini
+  ./make-inventory.sh          # пишет inventory.ini с public_ip вашей ВМ
   ```
-- [ ] Впишите публичный IP в `inventory.ini`. Ключ — тот же `~/.ssh/id_ed25519`, что для ssh на занятиях 10–11.
+- [ ] Ключ — тот же `~/.ssh/id_ed25519`, что для ssh на занятиях 10–11. Другой путь: `ANSIBLE_KEY=~/.ssh/другой_ключ ./make-inventory.sh`.
 
 > Файл `inventory.ini` в Git не коммитим: там IP вашей ВМ. Для этого есть `.gitignore` в папке `lesson13/practice`.
 
@@ -155,6 +155,8 @@ ansible web -m setup -a "filter=ansible_hostname"   # факты
 ```
 
 Что вы увидели: `ping` — не ICMP-пинг, а проверка, что Ansible может зайти по SSH и выполнить Python на ВМ.
+
+> Первая задача плейбука — `cloud-init status --wait`: приложение курса ставится через cloud-init после `apply`, и Ansible ждёт, пока тот закончит. Поэтому плейбук можно запускать сразу после `apply`.
 
 ### Часть 2. Первый плейбук (15 мин)
 

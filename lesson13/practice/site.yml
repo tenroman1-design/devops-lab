@@ -14,6 +14,11 @@
 
   tasks:
     # ---------- Часть 1. Пакеты (готово) ----------
+    - name: Дождаться конца cloud-init (приложение ставится через него)
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init
+      changed_when: false
+
     - name: Установить утилиты
       ansible.builtin.apt:
         name: [htop, jq, tree]
