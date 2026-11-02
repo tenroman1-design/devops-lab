@@ -1,0 +1,4 @@
+# Скопируйте в inventory.ini и впишите публичный IP вашей ВМ (output public_ip из Terraform).
+# Ключ — тот же, что вы использовали для ssh на занятии 10–11.
+[web]
+203.0.113.10 ansible_user=root ansible_ssh_private_key_file=~/.ssh/id_ed25519
