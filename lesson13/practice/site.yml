@@ -1,0 +1,59 @@
+---
+# Занятие 13 — практика. Вы дописываете плейбук. Решение — в ../solution/site.yml.
+# Запуск:          ansible-playbook site.yml
+# Проверка связи:  ansible web -m ping
+# Второй запуск должен давать changed=0.
+
+- name: Настройка своей ВМ курса
+  hosts: web
+  become: true
+  vars:
+    motd_file: /etc/motd
+    app_dir: /opt/devops-lab/lesson09
+    app_url: http://127.0.0.1/
+
+  tasks:
+    # ---------- Часть 1. Пакеты (готово) ----------
+    - name: Дождаться конца cloud-init (приложение ставится через него)
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init
+      changed_when: false
+
+    - name: Установить утилиты
+      ansible.builtin.apt:
+        name: [htop, jq, tree]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    # ---------- Часть 2. Факты (готово) ----------
+    - name: Показать факты о ВМ
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['hostname'] }}: {{ ansible_facts['processor_vcpus'] }} vCPU, RAM {{ ansible_facts['memtotal_mb'] }} МБ"
+
+    # ---------- Часть 3. Команды и их вывод (ВАША ЧАСТЬ) ----------
+    # TODO 1. Команда `uptime` через модуль command. Сохраните вывод в переменную uptime_out
+    #         (register) и добавьте changed_when: false.
+    #         Подсказка: см. задачу «Версия ОС» в решении.
+
+    # TODO 2. Задача ShowDisk через модуль shell: команда `df -h / | tail -1`,
+    #         результат в переменную disk. Добавьте changed_when: false.
+
+    # TODO 3. Задача debug, которая выводит uptime_out.stdout и disk.stdout
+    #         (одно сообщение, msg со списком из двух строк).
+
+    # TODO 4. Задача с loop по трём командам: uptime, whoami, docker --version.
+    #         Выведите каждый результат через debug, используйте loop_control.label.
+
+    # ---------- Часть 4. Файл motd (ВАША ЧАСТЬ) ----------
+    # TODO 5. Модуль copy: dest = {{ motd_file }}, content — две строки:
+    #         «Сервер курса DevOps» и «Хост: {{ inventory_hostname }}». mode: "0644".
+    #         Запустите плейбук дважды: что показывает changed во втором запуске?
+
+    # ---------- Часть 5. Приложение (ВАША ЧАСТЬ) ----------
+    # TODO 6. Команда `docker compose ps` с chdir: {{ app_dir }}, register: compose_ps,
+    #         changed_when: false. Выведите compose_ps.stdout_lines через debug (var:).
+
+    # TODO 7. Модуль uri: url = {{ app_url }}, status_code: 200, return_content: true,
+    #         register: app, changed_when: false.
+    #         Затем assert: проверьте, что 'backend' in app.content.

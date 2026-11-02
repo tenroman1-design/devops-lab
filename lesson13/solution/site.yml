@@ -1,0 +1,103 @@
+---
+# Занятие 13: Ansible на своей ВМ.
+# Запуск:          ansible-playbook site.yml
+# Проверка связи:  ansible web -m ping
+# Идемпотентность: второй запуск — changed=0 (задачи с changed_when: false не меняют ВМ).
+
+- name: Настройка своей ВМ курса
+  hosts: web
+  become: true
+  vars:
+    motd_file: /etc/motd
+    app_dir: /opt/devops-lab/lesson09
+    app_url: http://127.0.0.1/
+
+  tasks:
+    # ---------- Часть 1. Пакеты ----------
+    - name: Дождаться конца cloud-init (приложение ставится через него)
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init
+      changed_when: false
+
+    - name: Установить утилиты
+      ansible.builtin.apt:
+        name: [htop, jq, tree]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    # ---------- Часть 2. Факты и команды с выводом ----------
+    - name: Показать факты о ВМ
+      ansible.builtin.debug:
+        msg: "{{ ansible_facts['hostname'] }}: {{ ansible_facts['processor_vcpus'] }} vCPU, RAM {{ ansible_facts['memtotal_mb'] }} МБ"
+
+    - name: Версия ОС (command)
+      ansible.builtin.command: lsb_release -ds
+      register: os_release
+      changed_when: false
+
+    - name: Место на диске (shell — есть конвейер |)
+      ansible.builtin.shell: set -o pipefail && df -h / | tail -1
+      args:
+        executable: /bin/bash
+      register: disk
+      changed_when: false
+
+    - name: Несколько команд за раз (loop + register)
+      ansible.builtin.command: "{{ item }}"
+      loop:
+        - uptime
+        - whoami
+        - docker --version
+      register: checks
+      changed_when: false
+
+    - name: Вывести результаты всех команд
+      ansible.builtin.debug:
+        msg: "{{ item.item }} -> {{ item.stdout }}"
+      loop: "{{ checks.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Показать ОС и диск
+      ansible.builtin.debug:
+        msg:
+          - "ОС: {{ os_release.stdout }}"
+          - "Диск /: {{ disk.stdout }}"
+
+    # ---------- Часть 3. Изменение файла (идемпотентно) ----------
+    - name: Записать в motd информацию о ВМ
+      ansible.builtin.copy:
+        dest: "{{ motd_file }}"
+        content: |
+          Сервер курса DevOps. Настроен Ansible.
+          Хост: {{ inventory_hostname }}
+          ОС: {{ os_release.stdout }}
+        mode: "0644"
+
+    # ---------- Часть 4. Статус приложения ----------
+    - name: Статус контейнеров приложения
+      ansible.builtin.command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      register: compose_ps
+      changed_when: false
+
+    - name: Показать контейнеры
+      ansible.builtin.debug:
+        var: compose_ps.stdout_lines
+
+    - name: Проверить, что приложение отвечает
+      ansible.builtin.uri:
+        url: "{{ app_url }}"
+        status_code: 200
+        return_content: true
+      register: app
+      changed_when: false
+
+    - name: Убедиться, что ответ — наш бэкенд
+      ansible.builtin.assert:
+        that:
+          - "'backend' in app.content"
+        success_msg: "Приложение отвечает, бэкенд на месте"
+        fail_msg: "Ответ не похож на наш бэкенд"

@@ -18,7 +18,7 @@
   - [Docker на macOS](#docker-и-docker-compose-на-macos)
   - [Образы курса из GHCR](#образы-курса-из-нашего-реестра-ghcr)
   - [Terraform → подготовка к занятию 10](lesson10/README.md#подготовка)
-- [Занятия 8–12: README, практика и домашние задания](#занятия)
+- [Занятия 8–13: README, практика и домашние задания](#занятия)
 - [Если что-то не работает](#если-что-то-не-работает)
 
 ## Структура репозитория
@@ -37,6 +37,8 @@ lesson11/practice/        занятие 11: рабочая папка — ВМ 
 lesson11/solution/        готовое решение занятия 11
 lesson12/practice/        занятие 12: рабочая папка — fmt/validate, state mv, дрейф, import, lifecycle, count
 lesson12/solution/        готовое решение занятия 12
+lesson13/practice/        занятие 13: плейбук Ansible для своей ВМ (TODO, вы дописываете)
+lesson13/solution/        готовое решение занятия 13
 extras/modules/           черновик занятия про модули Terraform — отложено
 extras/cluster/           черновик занятия про кластер (балансировщик, приватная сеть) — отложено
 extras/cicd/, .github/    заготовки CI/CD на будущее (в курсе пока не используются) и копирование образов в GHCR
@@ -55,7 +57,7 @@ scripts/pull-images.sh    скачать образы курса из GHCR
 | Git + аккаунт GitHub + SSH-ключ | код; SSH-ключ — вход на ВМ в облаке | 8–10 |
 | git-filter-repo | чистка истории от секретов | 9 |
 | Terraform | создание ВМ в облаке | 10 |
-| Ansible | настройка ВМ | позже |
+| Ansible | настройка ВМ | занятие 13 |
 | Редактор (VS Code) | удобно, но не обязательно | — |
 
 ### Windows → VirtualBox + Ubuntu Server
@@ -293,6 +295,7 @@ bash scripts/pull-images.sh
 | 10 | Infrastructure as Code: своя ВМ в cloud.ru через Terraform | [lesson10/README.md](lesson10/README.md) · [шаблон ДЗ](lesson10/HOMEWORK.md) |
 | 11 | Своё приложение в облаке: Terraform + cloud-init + Docker Compose | [lesson11/README.md](lesson11/README.md) · [шаблон ДЗ](lesson11/HOMEWORK.md) |
 | 12 | Terraform в повседневной работе: state, дрейф, import, lifecycle, count | [lesson12/README.md](lesson12/README.md) · [шаблон ДЗ](lesson12/HOMEWORK.md) |
+| 13 | Введение в Ansible: плейбук для своей ВМ, вывод команд, идемпотентность | [lesson13/README.md](lesson13/README.md) · [шаблон ДЗ](lesson13/HOMEWORK.md) |
 
 **Как сдавать ДЗ:** в папке каждого занятия лежит шаблон `HOMEWORK.md`. Скопируйте его, назовите `ДЗ-<номер>-<фамилия>.md` (например, `ДЗ-08-ivanov.md`), заполните и отправьте **файлом в чат группы** до начала следующего занятия. Вывод команд — текстом, без скриншотов. Пароли и ключи в ДЗ не вставляйте никогда.
 
