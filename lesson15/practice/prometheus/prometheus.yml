@@ -1,0 +1,36 @@
+# Prometheus, занятие 15. Вы дописываете TODO.
+# Проверка:   docker compose exec prometheus promtool check config /etc/prometheus/prometheus.yml
+# Применить:  docker compose restart prometheus
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: node
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # TODO 1. Добавьте job cadvisor: метрики контейнеров.
+  #   Адрес: cadvisor:8080. Блок такой же, как у node.
+
+  # TODO 2. Добавьте job backend-http: Prometheus просит blackbox проверить
+  #   http://nginx/health и возвращает результат. Заполните targets.
+  #   Блок уже почти готов: relabel-правила переносят адрес проверки в параметр target.
+  - job_name: backend-http
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets: []               # TODO 2: впишите адрес проверки, см. подсказку выше
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115

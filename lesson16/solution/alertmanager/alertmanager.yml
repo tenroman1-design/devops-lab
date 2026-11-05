@@ -1,0 +1,30 @@
+# Alertmanager, занятие 16. Решение.
+# Проверка:  docker compose exec alertmanager amtool check-config /etc/alertmanager/alertmanager.yml
+#
+# Маршрутизация: все алерты уходят в lab-webhook. Критичные повторяются чаще.
+# В учебном стенде приёмник — alert-echo, он печатает пришедшее в логи.
+# В настоящей системе здесь были бы Telegram, почта или дежурная система. Адрес приёмника —
+# это секрет: в боевом стенде его берут из переменной окружения или хранилища секретов, не из Git.
+
+route:
+  receiver: lab-webhook
+  group_by: [alertname, job]        # одинаковые алерты группируем в одно уведомление
+  group_wait: 10s                   # ждём 10 секунд, вдруг придут ещё алерты группы
+  group_interval: 1m
+  repeat_interval: 2h               # повторное напоминание, если алерт всё ещё Firing
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: lab-webhook
+      repeat_interval: 30m          # критичное напоминаем чаще
+
+    - matchers:
+        - severity="warning"
+      receiver: lab-webhook
+      repeat_interval: 4h           # предупреждение можно напоминать реже
+
+receivers:
+  - name: lab-webhook
+    webhook_configs:
+      - url: http://alert-echo:8080/alerts
+        send_resolved: true         # отправлять и сообщение «проблема устранена»

@@ -18,7 +18,7 @@
   - [Docker на macOS](#docker-и-docker-compose-на-macos)
   - [Образы курса из GHCR](#образы-курса-из-нашего-реестра-ghcr)
   - [Terraform → подготовка к занятию 10](lesson10/README.md#подготовка)
-- [Занятия 8–13: README, практика и домашние задания](#занятия)
+- [Занятия 8–16: README, практика и домашние задания](#занятия)
 - [Если что-то не работает](#если-что-то-не-работает)
 
 ## Структура репозитория
@@ -39,6 +39,10 @@ lesson12/practice/        занятие 12: рабочая папка — fmt/v
 lesson12/solution/        готовое решение занятия 12
 lesson13/practice/        занятие 13: плейбук Ansible для своей ВМ (TODO, вы дописываете)
 lesson13/solution/        готовое решение занятия 13
+lesson14/practice/        занятие 14 (модуль «Мониторинг»): Prometheus + node-exporter
+lesson15/practice/        занятие 15: Grafana, cAdvisor, blackbox — дашборд курса
+lesson16/practice/        занятие 16: Alertmanager и правила алертов
+lesson16/solution/        решение занятия 16 (и далее — по той же схеме)
 extras/modules/           черновик занятия про модули Terraform — отложено
 extras/cluster/           черновик занятия про кластер (балансировщик, приватная сеть) — отложено
 extras/cicd/, .github/    заготовки CI/CD на будущее (в курсе пока не используются) и копирование образов в GHCR
@@ -313,6 +317,9 @@ git stash pop                  # вернуть свои правки (если 
 | 11 | Своё приложение в облаке: Terraform + cloud-init + Docker Compose | [lesson11/README.md](lesson11/README.md) · [шаблон ДЗ](lesson11/HOMEWORK.md) |
 | 12 | Terraform в повседневной работе: state, дрейф, import, lifecycle, count | [lesson12/README.md](lesson12/README.md) · [шаблон ДЗ](lesson12/HOMEWORK.md) |
 | 13 | Введение в Ansible: плейбук для своей ВМ, вывод команд, идемпотентность | [lesson13/README.md](lesson13/README.md) · [шаблон ДЗ](lesson13/HOMEWORK.md) |
+| 14 | Мониторинг: Prometheus, метрики ВМ, PromQL | [lesson14/README.md](lesson14/README.md) · [шаблон ДЗ](lesson14/HOMEWORK.md) |
+| 15 | Мониторинг: Grafana, cAdvisor, проверка приложения снаружи | [lesson15/README.md](lesson15/README.md) · [шаблон ДЗ](lesson15/HOMEWORK.md) |
+| 16 | Мониторинг: алерты и Alertmanager | [lesson16/README.md](lesson16/README.md) · [шаблон ДЗ](lesson16/HOMEWORK.md) |
 
 **Как сдавать ДЗ:** в папке каждого занятия лежит шаблон `HOMEWORK.md`. Скопируйте его, назовите `ДЗ-<номер>-<фамилия>.md` (например, `ДЗ-08-ivanov.md`), заполните и отправьте **файлом в чат группы** до начала следующего занятия. Вывод команд — текстом, без скриншотов. Пароли и ключи в ДЗ не вставляйте никогда.
 

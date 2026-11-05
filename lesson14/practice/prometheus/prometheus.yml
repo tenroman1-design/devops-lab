@@ -1,0 +1,18 @@
+# Prometheus, занятие 14. Вы дописываете TODO.
+# Проверка синтаксиса (без перезапуска):
+#   docker compose exec prometheus promtool check config /etc/prometheus/prometheus.yml
+# Применить изменения: docker compose restart prometheus
+
+global:
+  scrape_interval: 15s          # как часто собирать метрики
+  evaluation_interval: 15s      # как часто считать правила (понадобится на занятии 16)
+
+scrape_configs:
+  # Prometheus собирает метрики о самом себе. Этот блок уже готов.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # TODO 1. Добавьте job с именем node: метрики ВМ от node-exporter.
+  #   Адрес внутри docker-сети: node-exporter:9100.
+  #   Подсказка: блок такой же, как у prometheus, меняются job_name и targets.

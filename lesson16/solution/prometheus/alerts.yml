@@ -1,0 +1,40 @@
+# Правила алертов, занятие 16. Решение.
+# Проверка:  docker compose exec prometheus promtool check rules /etc/prometheus/alerts.yml
+#
+# Правило срабатывает (состояние Pending → Firing), если выражение истинно дольше `for`.
+# Firing-алерт Prometheus отправляет в Alertmanager; тот решает, кому и как сообщить.
+
+groups:
+  - name: lab-basic
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Цель {{ $labels.job }} ({{ $labels.instance }}) недоступна больше минуты"
+
+      - alert: BackendHealthFailed
+        expr: probe_success{job="backend-http"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Приложение не отвечает на /health через nginx"
+
+      - alert: HostHighCpu
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Загрузка CPU ВМ выше 85% дольше 5 минут"
+
+      - alert: DiskAlmostFull
+        expr: (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Диск ВМ заполнен больше чем на 80%"

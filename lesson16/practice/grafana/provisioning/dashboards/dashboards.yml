@@ -1,0 +1,12 @@
+# Grafana загружает дашборды из папки /var/lib/grafana/dashboards (это ./grafana/dashboards на ВМ).
+apiVersion: 1
+
+providers:
+  - name: lab
+    orgId: 1
+    folder: Курс DevOps
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards

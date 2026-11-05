@@ -1,0 +1,78 @@
+# Занятие 15: мониторинг — Prometheus, node-exporter, cAdvisor, blackbox и Grafana.
+# Перед запуском: стек приложения (занятие 9) должен работать — его сеть app-net нужна blackbox.
+# Пароль Grafana — в файле .env (см. .env.example), в Git он не попадает.
+#
+# Запуск (на ВМ, в этой папке):   docker compose up -d
+# Проверка:                        docker compose ps
+
+name: monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks: [monitoring-net]
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks: [monitoring-net]
+    restart: unless-stopped
+
+  # cAdvisor: метрики каждого контейнера (память, CPU, сеть).
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    devices:
+      - /dev/kmsg
+    networks: [monitoring-net]
+    restart: unless-stopped
+
+  # blackbox: проверяет снаружи, отвечает ли приложение. Сидит в сети приложения.
+  blackbox:
+    image: prom/blackbox-exporter:v0.26.0
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    networks: [monitoring-net, app-net]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?задайте GRAFANA_ADMIN_PASSWORD в .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [monitoring-net]
+    depends_on: [prometheus]
+    restart: unless-stopped
+
+networks:
+  monitoring-net:
+  app-net:
+    external: true              # сеть стека занятия 9; её создаёт docker compose в lesson09
+    name: devops-lab_frontend-net
+
+volumes:
+  prometheus-data:
+  grafana-data:

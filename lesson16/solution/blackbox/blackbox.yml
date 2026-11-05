@@ -1,0 +1,8 @@
+# blackbox_exporter: описываем, как проверять. Модуль http_2xx: HTTP GET, ожидаем код 200.
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: [200]
+      method: GET

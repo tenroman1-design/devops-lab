@@ -1,0 +1,23 @@
+# Alertmanager, занятие 16. Вы дописываете TODO.
+# Проверка:  docker compose exec alertmanager amtool check-config /etc/alertmanager/alertmanager.yml
+
+route:
+  receiver: lab-webhook
+  group_by: [alertname, job]
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 2h
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: lab-webhook
+      repeat_interval: 30m
+
+    # TODO 2. Добавьте маршрут для severity="warning": повтор каждые 4h.
+    #   Блок такой же, как у critical, меняются matchers и repeat_interval.
+
+receivers:
+  - name: lab-webhook
+    webhook_configs:
+      - url: http://alert-echo:8080/alerts
+        send_resolved: true
