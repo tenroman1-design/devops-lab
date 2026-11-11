@@ -18,7 +18,7 @@ write_files:
       POSTGRES_PASSWORD=${db_password}
       POSTGRES_DB=appdb
       APP_VERSION=lesson-12
-      HTTP_PORT=80
+      HTTP_PORT=127.0.0.1:8080
 
   - path: /opt/start-app.sh
     permissions: "0700"
