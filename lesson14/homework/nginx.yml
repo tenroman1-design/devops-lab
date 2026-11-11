@@ -1,0 +1,69 @@
+---
+- name: Deploy Nginx reverse proxy
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/docker-app
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              location /health {
+                  default_type text/plain;
+                  return 200 "OK\n";
+              }
+
+              location / {
+                  proxy_pass http://127.0.0.1:8080;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_set_header X-Student-Name "Egor";
+              }
+          }
+      notify: Validate and restart nginx
+
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/docker-app
+        dest: /etc/nginx/sites-enabled/docker-app
+        state: link
+      notify: Validate and restart nginx
+
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Validate and restart nginx
+
+    - name: Ensure nginx is enabled
+      ansible.builtin.service:
+        name: nginx
+        enabled: true
+
+  handlers:
+    - name: Validate nginx config
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+      listen: Validate and restart nginx
+
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+      listen: Validate and restart nginx
