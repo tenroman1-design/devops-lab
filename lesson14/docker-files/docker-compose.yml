@@ -1,0 +1,57 @@
+name: devops-lab
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "127.0.0.1:8080:80"                      # единственный опубликованный порт
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [frontend-net]
+    depends_on: [backend]
+
+  backend:
+    build: ../app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-appdb}
+      REDIS_URL: redis://cache:6379/0
+      APP_VERSION: ${APP_VERSION:-dev}
+    # ports больше нет: бэкенд виден только Nginx'у во внутренней сети,
+    # поэтому --scale backend=N работает без конфликтов портов
+    networks: [frontend-net, backend-net]
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [backend-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    networks: [backend-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+networks:
+  frontend-net:   # nginx <-> backend
+  backend-net:    # backend <-> db, cache (nginx сюда не видит)
+
+volumes:
+  pgdata:
