@@ -1,0 +1,152 @@
+---
+- name: Deploy Nginx reverse proxy
+  hosts: web
+  become: true
+  vars:
+    student_name: "Kirill Ivanov"
+    backend_url: http://127.0.0.1:80
+    nginx_listen_ip: "{{ ansible_facts['default_ipv4']['address'] }}"
+    nginx_site: docker-app
+
+  tasks:
+    - name: Wait for cloud-init to finish (it starts the Docker app)
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init
+      changed_when: false
+      failed_when: cloud_init.rc not in [0, 2]
+
+    - name: Docker app answers on 127.0.0.1:80
+      ansible.builtin.uri:
+        url: "{{ backend_url }}/"
+        return_content: true
+      register: docker_app
+      until: docker_app.status == 200
+      retries: 10
+      delay: 3
+
+    - name: Who listens on port 80
+      ansible.builtin.command: ss -Hltn 'sport = :80'
+      register: port80
+      changed_when: false
+
+    - name: Docker must publish port 80 only on 127.0.0.1
+      ansible.builtin.assert:
+        that:
+          - "'0.0.0.0:80' not in port80.stdout"
+          - "'[::]:80' not in port80.stdout"
+          - "'*:80' not in port80.stdout"
+        fail_msg: "Порт 80 открыт на всех адресах: проверьте HTTP_PORT=127.0.0.1:80 в cloud-init. Сейчас: {{ port80.stdout_lines }}"
+        success_msg: "Порт 80 занят только на 127.0.0.1"
+
+    - name: Collect installed packages
+      ansible.builtin.package_facts:
+        manager: apt
+
+    - name: Install nginx without autostart
+      block:
+        - name: Forbid service autostart during the first install
+          ansible.builtin.copy:
+            dest: /usr/sbin/policy-rc.d
+            content: |
+              #!/bin/sh
+              exit 101
+            owner: root
+            group: root
+            mode: "0755"
+          when: "'nginx' not in ansible_facts.packages"
+
+        - name: Install nginx
+          ansible.builtin.apt:
+            name: nginx
+            state: present
+            update_cache: true
+            cache_valid_time: 3600
+      always:
+        - name: Allow service autostart again
+          ansible.builtin.file:
+            path: /usr/sbin/policy-rc.d
+            state: absent
+
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: "/etc/nginx/sites-available/{{ nginx_site }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server {
+              listen {{ nginx_listen_ip }}:80;
+              server_name _;
+
+              # Задание 2
+              location = /health {
+                  access_log off;
+                  default_type text/plain;
+                  return 200 "OK\n";
+              }
+
+              location / {
+                  proxy_pass {{ backend_url }};
+
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+
+                  # Задание 1
+                  proxy_set_header X-Student-Name "{{ student_name }}";
+              }
+          }
+      notify: Restart nginx
+
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/{{ nginx_site }}"
+        dest: "/etc/nginx/sites-enabled/{{ nginx_site }}"
+        state: link
+      notify: Restart nginx
+
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart nginx
+
+    - name: Check nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Restart nginx now, only after a successful check
+      ansible.builtin.meta: flush_handlers
+
+    - name: Ensure nginx is running and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: /health is answered by Nginx itself
+      ansible.builtin.uri:
+        url: "http://{{ nginx_listen_ip }}/health"
+        return_content: true
+      register: health
+      failed_when: health.status != 200 or (health.content | default('') | trim) != 'OK'
+
+    - name: / is proxied to the Docker app
+      ansible.builtin.uri:
+        url: "http://{{ nginx_listen_ip }}/"
+        return_content: true
+      register: root_page
+      failed_when: root_page.status != 200 or 'backend' not in (root_page.content | default(''))
+
+    - name: Show result
+      ansible.builtin.debug:
+        msg:
+          - "/health -> {{ health.content | trim }}"
+          - "/       -> {{ root_page.content | trim }}"
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
