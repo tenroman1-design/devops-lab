@@ -1,0 +1,83 @@
+---
+- name: Install and configure Nginx
+  hosts: web
+  become: true # по идее не надо потому что я с root'а но ваще поменять бы на пользователя
+
+  tasks:
+
+    # конфликт портов иначе, добавил от себя
+    # в ssh sudo lsof -nPi:80 | grep LISTEN покажет что nginx сменился
+    # посчитал странно оставлять nginx и в контейнере и скаченный
+    - name: remove old docker container
+      ansible.builtin.shell: |
+        docker stop $(docker ps -q -f name=nginx) || true
+        docker rm $(docker ps -aq -f name=nginx) || true
+      changed_when: false
+
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Start nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+    
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/docker-app
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          server {
+              listen 80;
+              server_name _;
+
+              location /health {
+                  default_type text/plain;
+                  return 200 "OK\n";
+              }
+
+              location / {
+                  proxy_pass http://127.0.0.1:8000;
+
+                  proxy_set_header X-Student-Name "Sergey Kozlov";
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+      notify: Restart nginx
+
+    # symlink без него не работает хз
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/docker-app
+        dest: /etc/nginx/sites-enabled/docker-app
+        state: link
+      notify: Restart nginx
+
+    # дефолтный конфиг удаляю не нужен
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart nginx
+    
+    - name: Check nginx config before restart
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false 
+    
+  handlers:
+
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
