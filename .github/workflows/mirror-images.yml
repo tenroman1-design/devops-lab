@@ -29,6 +29,12 @@ jobs:
           - { src: docker.io/library/nginx:1.27-alpine,    dst: nginx:1.27-alpine }
           - { src: docker.io/library/hello-world:latest,   dst: hello-world:latest }
           - { src: docker.io/zricethezav/gitleaks:latest,  dst: gitleaks:latest }
+          # занятие 15: мониторинг
+          - { src: quay.io/prometheus/prometheus:v2.53.0,      dst: prometheus:v2.53.0 }
+          - { src: quay.io/prometheus/node-exporter:v1.8.1,    dst: node-exporter:v1.8.1 }
+          - { src: quay.io/prometheus/alertmanager:v0.27.0,    dst: alertmanager:v0.27.0 }
+          - { src: docker.io/grafana/grafana:11.1.0,           dst: grafana:11.1.0 }
+          - { src: ghcr.io/stefanprodan/podinfo:6.7.0,         dst: podinfo:6.7.0 }
     steps:
       - uses: docker/setup-buildx-action@v4
 

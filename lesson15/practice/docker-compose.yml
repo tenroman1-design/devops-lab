@@ -1,0 +1,45 @@
+# Стек мониторинга: Prometheus, node-exporter, Alertmanager, Grafana и тестовое приложение podinfo
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=2d
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+    ports:
+      - "9090:9090"
+    mem_limit: 512m
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    pid: host
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+    mem_limit: 64m
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+    ports:
+      - "9093:9093"
+    mem_limit: 128m
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?задайте GRAFANA_PASSWORD в файле .env}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    mem_limit: 256m
+
+  podinfo:
+    image: stefanprodan/podinfo:6.7.0
+    ports:
+      - "9898:9898"
+    mem_limit: 64m

@@ -39,6 +39,8 @@ lesson12/practice/        занятие 12: рабочая папка — fmt/v
 lesson12/solution/        готовое решение занятия 12
 lesson13/practice/        занятие 13: плейбук Ansible для своей ВМ (TODO, вы дописываете)
 lesson13/solution/        готовое решение занятия 13
+lesson15/practice/        занятие 15: мониторинг своей ВМ — Prometheus, Grafana, Alertmanager в Docker Compose
+lesson15/solution/        готовое решение занятия 15
 extras/modules/           черновик занятия про модули Terraform — отложено
 extras/cluster/           черновик занятия про кластер (балансировщик, приватная сеть) — отложено
 extras/cicd/, .github/    заготовки CI/CD на будущее (в курсе пока не используются) и копирование образов в GHCR
@@ -313,6 +315,7 @@ git stash pop                  # вернуть свои правки (если 
 | 11 | Своё приложение в облаке: Terraform + cloud-init + Docker Compose | [lesson11/README.md](lesson11/README.md) · [шаблон ДЗ](lesson11/HOMEWORK.md) |
 | 12 | Terraform в повседневной работе: state, дрейф, import, lifecycle, count | [lesson12/README.md](lesson12/README.md) · [шаблон ДЗ](lesson12/HOMEWORK.md) |
 | 13 | Введение в Ansible: плейбук для своей ВМ, вывод команд, идемпотентность | [lesson13/README.md](lesson13/README.md) · [шаблон ДЗ](lesson13/HOMEWORK.md) |
+| 15 | Введение в мониторинг: Prometheus и Grafana на своей ВМ | [lesson15/README.md](lesson15/README.md) · [шаблон ДЗ](lesson15/HOMEWORK.md) |
 
 **Как сдавать ДЗ:** в папке каждого занятия лежит шаблон `HOMEWORK.md`. Скопируйте его, назовите `ДЗ-<номер>-<фамилия>.md` (например, `ДЗ-08-ivanov.md`), заполните и отправьте **файлом в чат группы** до начала следующего занятия. Вывод команд — текстом, без скриншотов. Пароли и ключи в ДЗ не вставляйте никогда.
 

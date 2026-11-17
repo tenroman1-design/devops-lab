@@ -1,0 +1,21 @@
+# Эталон: правило PodinfoDown и домашнее правило HighNodeMemory
+groups:
+  - name: lab
+    rules:
+      - alert: PodinfoDown
+        expr: up{job="podinfo"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "podinfo недоступен"
+          description: "Prometheus не получает метрики от podinfo уже минуту."
+
+      - alert: HighNodeMemory
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Мало свободной памяти на машине"
+          description: "Занято больше 85% памяти дольше 2 минут."

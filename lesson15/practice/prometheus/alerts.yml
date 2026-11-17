@@ -1,0 +1,10 @@
+groups:
+  - name: lab
+    rules:
+      # TODO (часть 5): добавьте сюда правило PodinfoDown.
+      # Уберите решётки и допишите значения вместо «...»:
+      # - alert: PodinfoDown
+      #   expr: ...                 # цель podinfo недоступна (метрика up)
+      #   for: ...                  # держится 1 минуту
+      #   labels:
+      #     severity: critical
