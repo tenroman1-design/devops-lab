@@ -1,0 +1,88 @@
+
+---
+- name: Deploy Nginx reverse proxy
+  hosts: web
+  become: true
+
+  tasks:
+
+    - name: Check Docker application
+      ansible.builtin.uri:
+        url: http://127.0.0.1:80/
+        status_code: 200
+      changed_when: false
+
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+        policy_rc_d: 101
+
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/docker-app
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          server {
+              listen {{ ansible_default_ipv4.address }}:80;
+              server_name _;
+
+              location = /health {
+                  default_type text/plain;
+                  return 200 "OK\n";
+              }
+
+              location / {
+                  proxy_pass http://127.0.0.1:80;
+
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+
+                  proxy_set_header X-Student-Name "Artem Malyshev";
+              }
+          }
+      notify: nginx configuration changed
+
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/docker-app
+        dest: /etc/nginx/sites-enabled/docker-app
+        state: link
+      notify: nginx configuration changed
+
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: nginx configuration changed
+
+    - name: Check nginx configuration
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+
+    - name: Ensure nginx is running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+
+    - name: Validate nginx before restart
+      ansible.builtin.command:
+        cmd: nginx -t
+      changed_when: false
+      listen: nginx configuration changed
+
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+      listen: nginx configuration changed
