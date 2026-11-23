@@ -1,0 +1,36 @@
+// Находим только учебное приложение по метке Docker.
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "app" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_logging"]
+    regex         = "enabled"
+    action        = "keep"
+  }
+
+  rule {
+    target_label = "service"
+    replacement  = "demo-app"
+  }
+
+  rule {
+    target_label = "environment"
+    replacement  = "lab"
+  }
+}
+
+loki.source.docker "app" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.app.output
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
