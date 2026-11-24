@@ -1,3 +1,5 @@
+name: lesson16-logging
+
 services:
   loki:
     image: grafana/loki:3.5.1
@@ -5,6 +7,11 @@ services:
     volumes:
       - ./loki/loki.yaml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
+    networks:
+      default:
+      monitoring:
+        aliases:
+          - lesson16-loki
     restart: unless-stopped
 
   alloy:
@@ -17,20 +24,6 @@ services:
       - loki
     restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana:11.1.0
-    ports:
-      - "3000:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Create .env from .env.example}
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - loki
-    restart: unless-stopped
-
   app:
     image: python:3.12-slim
     working_dir: /app
@@ -38,11 +31,20 @@ services:
     volumes:
       - ./app/app.py:/app/app.py:ro
     ports:
-      - "8080:8080"
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       logging: "enabled"
     restart: unless-stopped
 
 volumes:
   loki-data:
-  grafana-data:
+
+networks:
+  monitoring:
+    external: true
+    name: ${MONITORING_NETWORK:-practice_default}

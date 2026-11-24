@@ -9,12 +9,20 @@
 
 ## Ошибки приложения
 ```logql
-{service="demo-app"} | json | level="ERROR"
+{service="demo-app"} | json app_level="level" | app_level="ERROR"
 ```
 
 ## HTTP 500
 ```logql
 {service="demo-app"} | json | status=500
+```
+
+## Один запрос по идентификатору
+
+Подставьте значение из тела HTTP-ответа.
+
+```logql
+{service="demo-app"} | json | request_id="ВАШ_REQUEST_ID"
 ```
 
 ## Медленные запросы
@@ -24,7 +32,7 @@
 
 ## Количество ошибок за 5 минут
 ```logql
-sum(count_over_time({service="demo-app"} | json | level="ERROR" [5m]))
+sum(count_over_time({service="demo-app"} | json app_level="level" | app_level="ERROR" | __error__="" [5m]))
 ```
 
 **Разбор:** `/fail` возвращает 500 и пишет ERROR с текстом о тестовом сбое базы данных. Это искусственная ошибка — настоящей базы в проекте нет. `/slow` отвечает 200 примерно за 800 мс: медленный запрос не обязательно ошибочный. `request_id` помогает связать ответ и запись, но не должен быть меткой Loki из-за высокой кардинальности.
