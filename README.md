@@ -41,7 +41,7 @@ lesson13/practice/        занятие 13: плейбук Ansible для св�
 lesson13/solution/        готовое решение занятия 13
 lesson15/practice/        занятие 15: мониторинг своей ВМ — Prometheus, Grafana, Alertmanager в Docker Compose
 lesson15/solution/        готовое решение занятия 15
-lesson16/practice/        занятие 16: Alloy и Loki для Grafana из занятия 15
+lesson16/practice/        занятие 16: сбор логов с Alloy и Loki, поиск в Grafana
 lesson16/solution/        эталонные запросы LogQL
 extras/modules/           черновик занятия про модули Terraform — отложено
 extras/cluster/           черновик занятия про кластер (балансировщик, приватная сеть) — отложено
@@ -318,7 +318,7 @@ git stash pop                  # вернуть свои правки (если 
 | 12 | Terraform в повседневной работе: state, дрейф, import, lifecycle, count | [lesson12/README.md](lesson12/README.md) · [шаблон ДЗ](lesson12/HOMEWORK.md) |
 | 13 | Введение в Ansible: плейбук для своей ВМ, вывод команд, идемпотентность | [lesson13/README.md](lesson13/README.md) · [шаблон ДЗ](lesson13/HOMEWORK.md) |
 | 15 | Введение в мониторинг: Prometheus и Grafana на своей ВМ | [lesson15/README.md](lesson15/README.md) · [шаблон ДЗ](lesson15/HOMEWORK.md) |
-| 16 | Централизованное логирование: Alloy, Loki и Grafana | [описание и практика](lesson16/README.md) · [домашнее задание](lesson16/HOMEWORK.md) |
+| 16 | Централизованное логирование: ищем ошибку HTTP 500 в Grafana | [описание и практика](lesson16/README.md) · [домашнее задание](lesson16/HOMEWORK.md) |
 
 **Как сдавать ДЗ:** в папке каждого занятия лежит шаблон `HOMEWORK.md`. Скопируйте его, назовите `ДЗ-<номер>-<фамилия>.md` (например, `ДЗ-08-ivanov.md`), заполните и отправьте **файлом в чат группы** до начала следующего занятия. Вывод команд — текстом, без скриншотов. Пароли и ключи в ДЗ не вставляйте никогда.
 
