@@ -35,6 +35,9 @@ jobs:
           - { src: quay.io/prometheus/alertmanager:v0.27.0,    dst: alertmanager:v0.27.0 }
           - { src: docker.io/grafana/grafana:11.1.0,           dst: grafana:11.1.0 }
           - { src: ghcr.io/stefanprodan/podinfo:6.7.0,         dst: podinfo:6.7.0 }
+          # занятие 16: логирование (Grafana и Python уже есть выше)
+          - { src: docker.io/grafana/loki:3.5.1,             dst: loki:3.5.1 }
+          - { src: docker.io/grafana/alloy:v1.10.2,           dst: alloy:v1.10.2 }
     steps:
       - uses: docker/setup-buildx-action@v4
 
